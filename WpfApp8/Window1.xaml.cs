@@ -29,48 +29,103 @@ namespace magan
         }
         void start()
         {
-            asd();
+            loadPersons();
         }
         async void create(object s, EventArgs e)
         {
-            bool temp = await connection.createPerson(NameInput.Text, Convert.ToInt32(AgeInput.Text));
-            if (temp)
+            try
             {
-                MessageBox.Show("Sikeres létrehozás");
-                asd();
+                bool temp = await connection.createPerson(NameInput.Text, Convert.ToInt32(AgeInput.Text));
+                if (temp)
+                {
+                    loadPersons();
+                    MessageBox.Show("Sikeres létrehozás");
+                }
+            }
+            catch (Exception e2)
+            {
+                MessageBox.Show(e2.Message);
             }
         }
-        async void asd()
-        {
 
+        async void deleteAll(object s, EventArgs e)
+        {
+            bool temp = await connection.deleteAllPerson();
+            if (temp)
+            {
+                loadPersons();
+                MessageBox.Show("Sikeres törlés");
+            }
+        }
+
+        async void loadPersons()
+        {
             NameStackPanel.Children.Clear();
             AgeStackPanel.Children.Clear();
-            List<string> allnames = await connection.AllNames();
-            foreach (string item in allnames)
+            dels.Children.Clear();
+            List<string> allNames = await connection.AllNames();
+            List<string> allAges = await connection.AllAges();
+            for (int i = 0; i < allNames.Count; i++)
             {
-                NameStackPanel.Children.Add(new TextBlock() { Text = item });
-                TextBlock nameLabel = new TextBlock();
-                nameLabel.Text = item;
+                StackPanel ageandedit = new StackPanel();
+                
+
+                string name = allNames[i];
+                string age = allAges[i];
+
+                TextBox nameLabel = new TextBox();
+                nameLabel.Text = name;
                 NameStackPanel.Children.Add(nameLabel);
-                Button delbutton = new Button();
-                delbutton.Content = "X";
-                delbutton.Click += async (s, e) =>
+
+                TextBox ageLabel = new TextBox();
+                ageLabel.Text = age;
+                ageLabel.Width = 150;
+
+                Button delButton = new Button();
+                delButton.Content = "X";
+                delButton.Click += async (s, e) =>
                 {
                     bool temp = await connection.deletePerson(nameLabel.Text);
                     if (temp)
                     {
-                        asd();
-                        MessageBox.Show("törölve!");
+                        loadPersons();
+                        MessageBox.Show("Sikeres törlés!");
                     }
                 };
-                dels.Children.Add(delbutton);
-                
+                dels.Children.Add(delButton);
+
+                string oldname = allNames[i];
+
+                Button editButton = new Button();
+                editButton.Content = "Edit";
+                editButton.Click += async (s, e) =>
+                {
+                    try
+                    {
+                        string newName = nameLabel.Text;
+                        int newAge = int.Parse(ageLabel.Text);
+
+                        bool temp = await connection.editPerson(newName, oldname, newAge);
+                        if (temp)
+                        {
+                            loadPersons();
+                            MessageBox.Show("Sikeres módosítás!");
+                        }
+                    }
+                    catch (Exception e2)
+                    {
+                        MessageBox.Show(e2.Message);
+                    }
+                };
+                editButton.Width = 150;
+
+                ageandedit.Orientation = Orientation.Horizontal;
+                ageandedit.Children.Add(ageLabel);
+                ageandedit.Children.Add(editButton);
+                AgeStackPanel.Children.Add(ageandedit);
             }
-            List<string> allages = await connection.AllAges();
-            foreach (string item in allages)
-            {
-                AgeStackPanel.Children.Add(new TextBlock() { Text = item });
-            }
+
+
         }
     }
 }

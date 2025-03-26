@@ -119,6 +119,33 @@ namespace magan
             return false;
         }
 
+        public async Task<bool> editPerson(string name, string oldname, int age)
+        {
+            string url = serverUrl + "/editPerson";
+            try
+            {
+                var jsonInfo = new
+                {
+                    newname = name,
+                    oldname = oldname,
+                    newage = age
+                };
+                string jsonStringified = JsonConvert.SerializeObject(jsonInfo);
+                HttpContent sendThis = new StringContent(jsonStringified, Encoding.UTF8, "Application/json");
+                HttpResponseMessage response = await client.PutAsync(url, sendThis);
+                response.EnsureSuccessStatusCode();
+                string result = await response.Content.ReadAsStringAsync();
+                JsonData data = JsonConvert.DeserializeObject<JsonData>(result);
+                return true;
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show(e.Message);
+            }
+
+            return false;
+        }
+
         public async Task<bool> deletePerson(string name)
         {
             string url = serverUrl + "/delPerson";
@@ -157,7 +184,6 @@ namespace magan
                 MessageBox.Show(e.Message);
 
             }
-
             return allnames;
         }
         public async Task<List<string>> AllAges()
@@ -178,6 +204,28 @@ namespace magan
             }
 
             return allages;
+        }
+
+        public async Task<bool> deleteAllPerson()
+        {
+            string url = serverUrl + "/deleteAll";
+            try
+            {
+                var jsonInfo = new {};
+                string jsonStringified = JsonConvert.SerializeObject(jsonInfo);
+                HttpContent sendThis = new StringContent(jsonStringified, Encoding.UTF8, "Application/json");
+                HttpResponseMessage response = await client.PostAsync(url, sendThis);
+                response.EnsureSuccessStatusCode();
+                string result = await response.Content.ReadAsStringAsync();
+                JsonData data = JsonConvert.DeserializeObject<JsonData>(result);
+                return true;
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show(e.Message);
+            }
+
+            return false;
         }
     }
 }
